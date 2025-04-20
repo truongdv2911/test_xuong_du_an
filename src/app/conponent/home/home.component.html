@@ -1,0 +1,236 @@
+
+<div class="row filter_box">
+    <h2 style="margin-top: 10px; margin-left: 70px;">Quản lý nhân viên </h2>
+    <div class="col-md-12 mb-3">
+      <div class="employee-filter bg-white p-3 rounded shadow-sm d-flex align-items-center gap-3">
+        
+        <div class="filter-group flex-grow-1">
+          <label for="search" class="form-label">Tìm kiếm</label>
+          <input type="text" class="form-control" id="search" placeholder="Nhập từ khóa (mã nhân viên, tên giảng viên, email)">
+        </div>
+        <div class="filter-group">
+          <label for="status" class="form-label">Trạng thái</label>
+          <select class="form-select" id="status">
+            <option value="">-- Chọn trạng thái --</option>
+            <option value="active">Đang hoạt động</option>
+            <option value="inactive">Ngừng hoạt động</option>
+          </select>
+        </div>
+      </div>
+    </div>
+</div>
+
+<div class="list_staff">
+    <p>Danh sách nhân viên</p>
+    <div class="employee-list-actions">
+        <button class="button import-button" (click)="openImportStaffs()">Import nhân viên</button>
+        <button class="button download-template-button" (click)="exportStaffs()">Download Template</button>
+        <button class="button add-button" (click)="openAddStaff()">Thêm nhân viên</button>
+        <button class="button history-button" (click)="openTimeImport()">Xem lịch sử Import</button>
+    </div>
+
+    <!-- Box xem lịch su import -->
+    <div class="modal" [class.show]="showModal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2>Lịch sử thao tác</h2>
+        </div>
+    
+        <div class="modal-body">
+          <table>
+            <thead>
+              <tr>
+                <th>STT</th>
+                <th>Ngày tạo</th>
+                <th>Tổng bản ghi</th>
+                <th>Import thành công</th>
+                <th>Import Lỗi </th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let item of listTimeImport; let i = index">
+                <td>{{ i + 1 }}</td>
+                <td>{{ item.importTime| date: 'dd/MM/yyyy HH:mm' }}</td>
+                <td>{{ item.total_record }}</td>
+                <td>{{ item.success_count }}</td>
+                <td>{{ item.error_count }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+    
+        <div class="modal-footer">
+          <button (click)="showModal = false">Đóng</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Form import nhan vien -->
+    <div class="overlay" *ngIf="isUploadStaffModalVisible">
+      <div class="modal-box">
+        <div class="modal-header">
+          <h3>Tai len file Excel</h3>
+          <span class="close-btn" (click)="closeUpdateLoad()">×</span>
+        </div>
+    
+        <form (ngSubmit)="uploadStaff()">
+          <div class="form-group">
+            <input type="file" (change)="onFileSelected($event)" accept=".xlsx" required>
+          </div>
+    
+          <div class="modal-footer">
+            <button type="button" (click)="closeUpdateLoad()">Đóng</button>
+            <button type="submit">tai len</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Form thêm nhân viên -->
+    <div class="overlay" *ngIf="isAddStaffModalVisible">
+        <div class="modal-box">
+          <div class="modal-header">
+            <h3>Thêm nhân viên</h3>
+            <span class="close-btn" (click)="closeAddStaffModal()">×</span>
+          </div>
+      
+          <form [formGroup]="addStaffForm" (ngSubmit)="saveStaff()">
+            <div class="form-group">
+              <label>Mã nhân viên</label>
+              <input type="text" formControlName="ma" [class.invalid]="addStaffForm.get('ma')?.invalid && addStaffForm.get('ma')?.touched">
+              <div class="error" *ngIf="addStaffForm.get('ma')?.errors?.['required'] && addStaffForm.get('ma')?.touched">Không để trống mã nhân viên</div>
+            </div>
+      
+            <div class="form-group">
+              <label>Tên nhân viên</label>
+              <input type="text" formControlName="name" [class.invalid]="addStaffForm.get('name')?.invalid && addStaffForm.get('name')?.touched">
+              <div class="error" *ngIf="addStaffForm.get('name')?.invalid && addStaffForm.get('name')?.touched">Không để trống tên</div>
+            </div>
+      
+            <div class="form-group">
+              <label>Email FPT</label>
+              <input type="email" formControlName="fpt" pattern="^[^\s]+@fpt\.edu\.vn$" [class.invalid]="addStaffForm.get('fpt')?.invalid && addStaffForm.get('fpt')?.touched">
+              <div class="error" *ngIf="addStaffForm.get('fpt')?.invalid && addStaffForm.get('fpt')?.touched">Email FPT không hợp lệ</div>
+            </div>
+      
+            <div class="form-group">
+              <label>Email FE</label>
+              <input type="email" formControlName="fe" pattern="^[^\s]+@fe\.edu\.vn$" [class.invalid]="addStaffForm.get('fe')?.invalid && addStaffForm.get('fe')?.touched">
+              <div class="error" *ngIf="addStaffForm.get('fe')?.invalid && addStaffForm.get('fe')?.touched">Email FE không hợp lệ</div>
+            </div>
+      
+            <div class="modal-footer">
+              <button type="button" (click)="closeAddStaffModal()">Đóng</button>
+              <button type="submit">Lưu</button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <!-- // bang nhan vien -->
+      <table class="employee-table">
+        <thead>
+          <tr>
+            <th>STT</th>
+            <th>Mã nhân viên</th>
+            <th>Tên nhân viên</th>
+            <th>Email FPT</th>
+            <th>Email FE</th>
+            <th>Trạng thái</th>
+            <th>Hành động</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let staff of staffs; let i = index">
+            <td>{{ i + 1 }}</td>
+            <td>{{ staff.ma }}</td>
+            <td>{{ staff.name }}</td>
+            <td>{{ staff.fpt }}</td>
+            <td>{{ staff.fe }}</td>
+            <td>{{ staff.status == 1 ? "Đang hoạt động" : "Ngừng hoạt động"}}</td>
+            <td class="actions">
+              <button class="edit-button" (click)="openUpdateStaff(staff)">
+                <svg viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a1 1 0 00-1.41 0l-2.34 2.34 3.75 3.75 2.34-2.34a1 1 0 000-1.41z" />
+                </svg>
+              </button>
+              <button class="delete-button" (click)="openConfirm(staff)">
+                <svg viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z" />
+                </svg>
+              </button>
+              <button class="view-button" (click)="openDetail(staff.id)">
+                <svg viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M12 4.5C7 4.5 2.73 8.11 1 12c1.73 3.89 6 7.5 11 7.5s9.27-3.61 11-7.5c-1.73-3.89-6-7.5-11-7.5zm0 13c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8.5A3.5 3.5 0 0 0 8.5 12 3.5 3.5 0 0 0 12 15.5 3.5 3.5 0 0 0 15.5 12 3.5 3.5 0 0 0 12 9.5z"/>
+                </svg>
+              </button>
+            </td>
+          </tr>
+          </tbody>
+      </table>
+
+      <!-- // form update nhan vien -->
+      <div class="overlay" *ngIf="isUpdateStaffModalVisible">
+        <div class="modal-box">
+          <div class="modal-header">
+            <h3>Update nhân viên</h3>
+            <span class="close-btn" (click)="closeUpdateStaffModal()">×</span>
+          </div>
+      
+          <form [formGroup]="updateStaffForm" (ngSubmit)="updateStaff()">
+            <div class="form-group">
+              <label>Mã nhân viên</label>
+              <input type="text" formControlName="ma" [class.invalid]="updateStaffForm.get('ma')?.invalid && updateStaffForm.get('ma')?.touched">
+              <div class="error" *ngIf="updateStaffForm.get('ma')?.errors?.['required'] && updateStaffForm.get('ma')?.touched">Không để trống mã nhân viên</div>
+            </div>
+      
+            <div class="form-group">
+              <label>Tên nhân viên</label>
+              <input type="text" formControlName="name" [class.invalid]="updateStaffForm.get('name')?.invalid && updateStaffForm.get('name')?.touched">
+              <div class="error" *ngIf="updateStaffForm.get('name')?.invalid && updateStaffForm.get('name')?.touched">Không để trống tên</div>
+            </div>
+      
+            <div class="form-group">
+              <label>Email FPT</label>
+              <input type="email" formControlName="fpt" pattern="^[^\s]+@fpt\.edu\.vn$" [class.invalid]="updateStaffForm.get('fpt')?.invalid && updateStaffForm.get('fpt')?.touched">
+              <div class="error" *ngIf="updateStaffForm.get('fpt')?.invalid && updateStaffForm.get('fpt')?.touched">Email FPT không hợp lệ</div>
+            </div>
+      
+            <div class="form-group">
+              <label>Email FE</label>
+              <input type="email" formControlName="fe" pattern="^[^\s]+@fe\.edu\.vn$" [class.invalid]="updateStaffForm.get('fe')?.invalid && updateStaffForm.get('fe')?.touched">
+              <div class="error" *ngIf="updateStaffForm.get('fe')?.invalid && updateStaffForm.get('fe')?.touched">Email FE không hợp lệ</div>
+            </div>
+      
+            <div class="modal-footer">
+              <button type="button" (click)="closeUpdateStaffModal()">Đóng</button>
+              <button type="submit">Lưu</button>
+            </div>
+            </form>
+            </div>
+        </div>
+
+      <!-- //nav page -->
+      <div class="navPage" style="margin-top: 10px;">
+        <nav aria-label="Page navigation example">
+            <ul class="pagination">
+              <li class="page-item" *ngIf="currentPage>1"><a class="page-link"  (click)="onChangePage(currentPage-1)">Previous</a></li>
+              <ng-container *ngFor="let page of visiblePages">
+                <li class="page-item" [ngClass]="{'active': currentPage === page}"><a class="page-link"  (click)="onChangePage(page)">{{page}}</a></li>
+              </ng-container>
+              <li class="page-item" *ngIf="currentPage<totalPage"><a class="page-link"  (click)="onChangePage(currentPage+1)">Next</a></li>
+            </ul>
+          </nav>
+     </div>
+     <!-- // boxx comfirm thay doi trang thai -->
+     <div class="overlay" *ngIf="isConfirmDialogVisible">
+        <div class="dialog-box">
+          <h3>Xác nhận thay đổi trạng thái?</h3>
+          <p>Bạn chắc chắn muốn thay đổi trạng thái nhân viên {{ staff?.name }} không?</p>
+          <div class="actions">
+            <button (click)="cancelChange()">Hủy</button>
+            <button (click)="confirmChange()">Thay đổi</button>
+          </div>
+        </div>
+      </div>
+</div>

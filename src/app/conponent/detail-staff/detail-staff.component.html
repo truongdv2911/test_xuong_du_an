@@ -1,0 +1,138 @@
+<div class="staff-detail-container">
+    <h2>Quản lý bộ môn / chuyên ngành</h2>
+  
+    <div class="staff-info">
+      <div class="section-title">
+        <i class="icon-info"></i> Thông tin nhân viên
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Mã</label>
+          <input type="text" [value]="staff.ma" readonly />
+        </div>
+        <div class="form-group">
+          <label>Tên</label>
+          <input type="text" [value]="staff.name" readonly />
+        </div>
+        <div class="form-group">
+          <label>Email FPT</label>
+          <input type="text" [value]="staff.fpt" readonly />
+        </div>
+        <div class="form-group">
+          <label>Email FE</label>
+          <input type="text" [value]="staff.fe" readonly />
+        </div>
+      </div>
+    </div>
+  
+    <div class="staff-assignments">
+      <div class="section-title">
+        <i class="icon-list"></i> Danh sách bộ môn, chuyên ngành theo cơ sở
+      </div>
+  
+      <table>
+        <thead>
+          <tr>
+            <th>STT</th>
+            <th>Cơ sở</th>
+            <th>Bộ môn</th>
+            <th>Chuyên ngành</th>
+            <th>Hành động</th>
+          </tr>
+        </thead>
+         <tbody>
+          <tr *ngIf="!smf?.length">
+            <td colspan="5">Nhân viên này không có bộ môn chức vụ</td>
+          </tr>
+          
+          <tr *ngFor="let item of smf; index as i">
+            <td>{{ i + 1 }}</td>
+            <td>{{ item.nameFacility }}</td>
+            <td>{{ item.nameMajor }}</td>
+            <td>{{ item.nameDepartment }}</td>
+            <td class="actions">
+                <button class="edit-button">
+                    <svg viewBox="0 0 24 24" fill="currentColor">
+                      <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a1 1 0 00-1.41 0l-2.34 2.34 3.75 3.75 2.34-2.34a1 1 0 000-1.41z" />
+                    </svg>
+                </button>
+                <button class="delete-button" (click)="openConfirm(item.id)">
+                    <svg viewBox="0 0 24 24" fill="currentColor">
+                      <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z" />
+                    </svg>
+                </button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+  
+      <button class="add-btn" (click)="openAddSmf()">Thêm bộ môn chuyên ngành</button>
+      <p class="note">
+        *** Chú ý: Nhân viên chỉ có một bộ môn và một chuyên ngành trong một cơ sở ***
+      </p>
+    </div>
+
+    <!-- // boxx comfirm thay doi trang thai -->
+    <div class="overlay" *ngIf="isConfirmDialogVisible">
+      <div class="dialog-box">
+        <h3>Xác nhận Xoa Bo mon / chuyen nghanh?</h3>
+        <p>Bạn chắc chắn muốn xoa Bo mon / chuyen nghanh không?</p>
+        <div class="actions">
+          <button (click)="cancelChange()">Hủy</button>
+          <button (click)="confirmChange()">Thay đổi</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- // box form add smf -->
+    <div class="custom-modal" *ngIf="isModalVisible">
+        <div class="custom-modal-content">
+          <div class="custom-modal-header">
+            <h3>Thêm bộ môn chuyên ngành</h3>
+            <button class="close-btn" (click)="closeModal()">×</button>
+          </div>
+      
+          <form [formGroup]="assignForm" (ngSubmit)="addSmf()">
+            <div class="form-group">
+              <label>* Cơ sở</label>
+              <select formControlName="idFacility">
+                <option value="" selected>--Chọn cơ sở--</option>
+                <option *ngFor="let cs of facilitys" [value]="cs.id">{{ cs.name }}</option>
+              </select>
+              <div class="error" *ngIf="assignForm.get('coso')?.invalid && assignForm.get('coso')?.touched">
+                Cơ sở không được để trống
+              </div>
+            </div>
+      
+            <div class="form-group">
+              <label>* Bộ môn</label>
+              <select formControlName="idMajor">
+                <option value="">--Chọn bộ môn--</option>
+                <option *ngFor="let bm of majors" [value]="bm.id">{{ bm.name }}</option>
+              </select>
+              <div class="error" *ngIf="assignForm.get('bomon')?.invalid && assignForm.get('bomon')?.touched">
+                Bộ môn không được để trống
+              </div>
+            </div>
+      
+            <div class="form-group">
+              <label>* Chuyên ngành</label>
+              <select formControlName="idDepart">
+                <option value="">--Chọn chuyên ngành--</option>
+                <option *ngFor="let cn of departments" [value]="cn.id">{{ cn.name }}</option>
+              </select>
+              <div class="error" *ngIf="assignForm.get('chuyennganh')?.invalid && assignForm.get('chuyennganh')?.touched">
+                Chuyên ngành không được để trống
+              </div>
+            </div>
+      
+            <div class="note">(*) Biểu thị trường không được trống!</div>
+      
+            <div class="modal-actions">
+              <button type="button" class="cancel-btn" (click)="closeModal()">Đóng</button>
+              <button type="submit" class="save-btn">Lưu</button>
+            </div>
+          </form>
+        </div>
+      </div>
+  </div>
